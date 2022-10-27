@@ -17,6 +17,8 @@ class CSP:
         # self.constraints[i][j] is a list of legal value pairs for
         # the variable pair (i, j)
         self.constraints = {}
+        self.backtracks = 0
+        self.failed_backtracks = 0
 
     def add_variable(self, name: str, domain: list):
         """Add a new variable to the CSP.
@@ -141,23 +143,8 @@ class CSP:
         # values that are not arc-consistent to begin with
         self.inference(assignment, self.get_all_arcs())
 
-        backtrackNeeded = False
-        for place in assignment: 
-            if len(assignment[place]) > 1:
-                backtrackNeeded = True
-
-        numOfBacktrack = 0
-        numOfFailedBacktrack = 0
-                
-        if backtrackNeeded == True: 
-            assignment = self.backtrack(assignment)
-
         # Call backtrack with the partial assignment 'assignment'
-        # return self.backtrack(assignment)
-        if assignment != None: 
-            print("JEG ER NONE!!!!!")
-
-        return assignment
+        return self.backtrack(assignment)
 
     def backtrack(self, assignment):
         """The function 'Backtrack' from the pseudocode in the
@@ -183,59 +170,29 @@ class CSP:
         assignments and inferences that took place in previous
         iterations of the loop.
         """
-        print("Første linje i backtracking")
         currentPlace = self.select_unassigned_variable(assignment)
-        print("ass: ", assignment[currentPlace])
-        print("currentPlace er: ", currentPlace)
 
         if currentPlace == None: 
-            print("Current place is none: ", assignment)
             return assignment
 
-        print("assignment[0-0] before forloop: ", assignment[currentPlace])
+        # print(assignment)
+
+        # går gjennom alle verdier nåværende rute kan ha
         for value in assignment[currentPlace]:
-            print("assigment[0-0] before deep copy: ", assignment[currentPlace])
             copiedAssignment = copy.deepcopy(assignment)
-            
-            print("current place in ca og a: ", copiedAssignment[currentPlace], " og ", assignment[currentPlace])
-            # alreadyExist = False
-            # neighboringArcs = self.get_all_neighboring_arcs(currentPlace)
             copiedAssignment[currentPlace] = [value]
 
-            print("copiedAss: ", copiedAssignment[currentPlace])
-
             changesMade = self.inference(copiedAssignment, self.get_all_neighboring_arcs(currentPlace))
-            print("changes made: ", changesMade)
+            
             if changesMade: 
+                self.backtracks+=1
                 result = self.backtrack(copiedAssignment)
-                if result:  return result
+                if result: return result
 
-        # print("Returns none: current place is ", currentPlace) 
+        # backtrack failed
+        self.failed_backtracks+=1
         return None
             
-            # for arc in neighboringArcs:
-            #     if len(copi[arc[0]]) == 1:
-            #         if value == copi[arc[0]][0]: 
-            #             alreadyExist = True
-            #             break
-
-            # if alreadyExist == False:
-            #     futureAssignment = self.backtrack(copi, numOfBacktrack, numOfFailedBacktrack)
-            #     numOfFailedBacktrack = futureAssignment[2]
-            #     numOfBacktrack = futureAssignment[1]
-            #     nextPlace = self.select_unassigned_variable(futureAssignment[0])
-                
-                # finished
-                # if nextPlace == None: 
-                #     return [futureAssignment[0], futureAssignment[1]+1, futureAssignment[2]] 
-
-
-            # last position on board
-            # if value == assignment[currentPlace][-1]: 
-            #     if (alreadyExist == True): 
-            #         print("I FAILED PLEASE COUNT ME", numOfFailedBacktrack+1, " current place: ", currentPlace)
-            #         numOfFailedBacktrack += 1
-            #     return [assignment, numOfBacktrack, numOfFailedBacktrack]
             
     def select_unassigned_variable(self, assignment):
         """The function 'Select-Unassigned-Variable' from the pseudocode
@@ -256,18 +213,17 @@ class CSP:
         the lists of legal values for each undecided variable. 'queue'
         is the initial queue of arcs that should be visited.
         """
-        print("Inference starter å kjøre")
-        ifChangesMade = False
         while (len(queue) != 0):
             next = queue.pop(0)
             if self.revise(assignment, next[0], next[1]):
-                ifChangesMade = True
+                if len(assignment[next[0]]) < 1:
+                    return False
                 for arc in self.get_all_neighboring_arcs(next[0]):
                     if arc[1] == next[0]: 
                         if arc not in queue:
                             queue.append(arc)
                     
-        return ifChangesMade
+        return True
 
     def revise(self, assignment, i, j):
         """The function 'Revise' from the pseudocode in the textbook.
@@ -373,6 +329,6 @@ def print_sudoku_solution(solution):
 if __name__ == "__main__":
     task = create_sudoku_csp("medium.txt")
     solution = task.backtracking_search()
-    # print("Number of backtracking: ", solution[1])
-    # print("Number of failed backtracking: ", solution[2])
     print_sudoku_solution(solution)
+    print("Backtracks: ", task.backtracks)
+    print("Failed backtracks: ", task.failed_backtracks)

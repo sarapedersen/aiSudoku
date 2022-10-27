@@ -175,8 +175,6 @@ class CSP:
         if currentPlace == None: 
             return assignment
 
-        # print(assignment)
-
         # går gjennom alle verdier nåværende rute kan ha
         for value in assignment[currentPlace]:
             copiedAssignment = copy.deepcopy(assignment)
@@ -204,7 +202,6 @@ class CSP:
             if len(assignment[place]) != 1:
                 return place
         # returnere neste variabel
-        
         pass
 
     def inference(self, assignment, queue):
@@ -327,8 +324,9 @@ def print_sudoku_solution(solution):
             print('------+-------+------')
 
 if __name__ == "__main__":
-    task = create_sudoku_csp("medium.txt")
+    task = create_sudoku_csp("veryhard.txt")
     solution = task.backtracking_search()
+    print("---------------------","\n")
     print_sudoku_solution(solution)
-    print("Backtracks: ", task.backtracks)
+    print("\nBacktracks: ", task.backtracks)
     print("Failed backtracks: ", task.failed_backtracks)

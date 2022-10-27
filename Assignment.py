@@ -141,7 +141,13 @@ class CSP:
         # values that are not arc-consistent to begin with
         self.inference(assignment, self.get_all_arcs())
 
-        self.backtrack(assignment)
+        backtrackNeeded = False
+        for place in assignment: 
+            if len(assignment[place]) > 1:
+                backtrackNeeded = True
+
+        if backtrackNeeded == True: 
+            assignment = self.backtrack(assignment)
 
         # Call backtrack with the partial assignment 'assignment'
         # return self.backtrack(assignment)
@@ -172,15 +178,30 @@ class CSP:
         iterations of the loop.
         """
         currentPlace = self.select_unassigned_variable(assignment)
-
+        if currentPlace == None: 
+            return assignment
+        
         for value in assignment[currentPlace]:
             copi = copy.deepcopy(assignment)
-            assignment[currentPlace] = value 
-
+            alreadyExist = False
+            neighboringArcs = self.get_all_neighboring_arcs(currentPlace)
+            copi[currentPlace] = [value]
+            for arc in neighboringArcs:
+                if len(copi[arc[0]]) == 1:
+                    if value == copi[arc[0]][0]: 
+                        alreadyExist = True
+                        break
+            if currentPlace == '8-8':
+                return copi
+            if alreadyExist == False:
+                futureAssignment = self.backtrack(copi)
+                nextPlace = self.select_unassigned_variable(futureAssignment)
+                if nextPlace == None: 
+                    return futureAssignment
+            if value == assignment[currentPlace][-1]: 
+                     return assignment
         
-
-        pass
-
+            
     def select_unassigned_variable(self, assignment):
         """The function 'Select-Unassigned-Variable' from the pseudocode
         in the textbook. Should return the name of one of the variables
@@ -189,8 +210,8 @@ class CSP:
         """
         for place in assignment:
             if len(assignment[place]) != 1:
-                print(place)
                 return place
+        
         
         # returnere neste variabel
         pass
@@ -314,12 +335,6 @@ def print_sudoku_solution(solution):
             print('------+-------+------')
 
 if __name__ == "__main__":
-    task = create_sudoku_csp("medium.txt")
-    
-    print_sudoku_solution(task.backtracking_search())
-
-
-    
-    # arcList = easy.get_all_arcs()
-    # for arc in arcList: 
-    #     print(arc)
+    task = create_sudoku_csp("hard.txt")
+    solution = task.backtracking_search()
+    print_sudoku_solution(solution)
